@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Youtube Wrapped</title>
+    <meta charset="UTF-8" />
+    <style>
+      body {
+        background-color: #d70000;
+        font-family: 'Arial', sans-serif;
+        color: #ffffff;
+      }
+      h1 {
+        font-size: 36px;
+        text-align: center;
+        margin-top: 50px;
+      }
+      a:link, a:visited {
+        color: white;
+      }
+      .top-creators{
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        margin-top: 50px;
+        
+      }
+      .firstVideoOfYear > img {
+        width: 320px;
+        height: 178px;        
+        object-fit: cover;
+      }
+      .top-summary {
+        text-align: center;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        margin-top: 50px;
+        font-size: 24px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .creator {
+        text-align: center;
+        margin: 25px;
+      }
+      .creator-name {
+        font-size: 24px;
+      }
+      .creator-image {
+        width: 200px;
+        height: 200px;
+        border-radius: 100px;
+        margin-bottom: 10px;
+      }
+      .top-videos {
+        margin-top: 50px;
+      }
+      .video {
+        display: flex;
+        align-items: center;
+        margin-top: 25px;
+      }
+      .video-rank {
+        font-size: 24px;
+        margin-right: 25px;
+      }
+      .video-name {
+        font-size: 24px;
+      }
+      .video-name > img {
+        width: 480px;
+        height: 270px;        
+        object-fit: cover;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="zipUpload">
+      <h3>Choose the local(s) zip file(s)</h3>
+      <p class="note">
+        Note : your browser will process the zip file, don't choose a file too big
+        !
+      </p>
+      <input type="file" id="file" name="file" accept="zip" multiple /><br />
+    </div>
+
+    <div class="top-summary"></div>
+    <div class="top-creators"></div>
+    <div class="top-video"></div>
+    <div class="top-likes"></div>
+    <!-- number of likes
+    most liked channel
+    most disliked channel -->
+
+    <div class="top-comments"></div>
+    <!-- number of comments
+    most commented channel -->
+ 
+
+    
+    
+    <script type="text/javascript" src="https://stuk.github.io/jszip/test/jquery-1.8.3.min.js"></script>
+    <script type="text/javascript" src="https://stuk.github.io/jszip/dist/jszip.js"></script>
+    <script src="https://unpkg.com/papaparse@latest/papaparse.min.js"></script>
+    <script type="text/javascript" src="utils.js"></script>
+
+    <script>
+      $("#file").on("change", function (event) {
+        // Closure to capture the file information.
+        var file = event.target.files[0];
+
+        JSZip.loadAsync(file) // 1) read the Blob
+        .then(function ($content) {
+            return $content.files[ "Takeout/YouTube and YouTube Music/history/watch-history.json" ].async("text");
+            
+        })
+        .then(function (text) {
+          $( "#zipUpload" ).replaceWith( "" );
+          var history = JSON.parse(text);
+          
+          var history2022 = history.filter(filterCurrentYear)
+          // var history2022 = history2022.filter(filternotAfter)
+          var history2022 = history2022.filter(filterRemovedVideos)
+
+          console.log(history2022)
+
+          topCreators(history2022);
+          topVideos(history2022);
+          topSummary(history2022);
+        });
+
+        JSZip.loadAsync(file) 
+        .then(function ($content) {
+            return $content.files[ "Takeout/YouTube and YouTube Music/my-comments/my-comments.html" ].async("text");
+        })
+        .then(function (text) { //replace with read of multiple file then return array of usefile files instead of lodading 3times
+          let comments = $(text)[2].childNodes;
+          let commentsList = getCommentsList(comments)
+          topComments(commentsList);
+        });
+
+      });
+    </script>
+  </body>
+</html>
+
+
+
+<!-- 
+  first video
+  last video
+  oldest video
+  most comment on channel
+  most liked chanel
+  latest liked video
+  first liked video
+  total channel watched
+  total video watched
+  random video
+
+  no reupload
+  share
+ -->
