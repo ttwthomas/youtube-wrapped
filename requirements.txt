@@ -12,3 +12,4 @@ protobuf==4.21.3
 six==1.16.0
 urllib3==1.26.13
 Werkzeug==2.2.2
+waitress=2.1.1
