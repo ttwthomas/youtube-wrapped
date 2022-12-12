@@ -22,9 +22,11 @@
         flex-wrap: wrap;
         justify-content: space-around;
         margin-top: 50px;
-        
       }
-      .firstVideoOfYear > img {
+      .firstVideoOfYear {
+        width: 33%;
+      }
+      .firstVideoOfYear > a > img {
         width: 320px;
         height: 178px;        
         object-fit: cover;
@@ -55,11 +57,15 @@
       }
       .top-videos {
         margin-top: 50px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
       }
       .video {
         display: flex;
         align-items: center;
         margin-top: 25px;
+        width: 500px;
       }
       .video-rank {
         font-size: 24px;
@@ -68,22 +74,41 @@
       .video-name {
         font-size: 24px;
       }
-      .video-name > img {
+      .video-name > a >  img {
         width: 480px;
         height: 270px;        
         object-fit: cover;
       }
+      .top-comments {
+        margin-top: 50px;
+        display: flex;
+        flex-wrap: wrap;
+        text-align: center;
+        justify-content: space-around;
+        font-size: 24px;
+      }
+      .comment {
+        margin-top: 25px;
+        width: 33%;
+      }
+      .comment > a > img {
+        width: 320px;
+        height: 178px;        
+        object-fit: cover;
+      }
+
     </style>
   </head>
 
   <body>
     <div id="zipUpload">
-      <h3>Choose the local(s) zip file(s)</h3>
+      <h3>Choose the takeout zip file</h3>
       <p class="note">
-        Note : your browser will process the zip file, don't choose a file too big
-        !
+        Generate the zip on takeout.google.com
+        </br>
+        Explort only youtube data (watch history, comments ans playlisst )
       </p>
-      <input type="file" id="file" name="file" accept="zip" multiple /><br />
+      <input type="file" id="file" name="file" accept="zip" multiple /><br/>
     </div>
 
     <div class="top-summary"></div>
@@ -93,11 +118,8 @@
     <!-- number of likes
     most liked channel
     most disliked channel -->
-
+    
     <div class="top-comments"></div>
-    <!-- number of comments
-    most commented channel -->
- 
 
     
     
@@ -122,24 +144,37 @@
           
           var history2022 = history.filter(filterCurrentYear)
           // var history2022 = history2022.filter(filternotAfter)
-          var history2022 = history2022.filter(filterRemovedVideos)
+          history2022 = history2022.filter(filterRemovedVideos)
 
           console.log(history2022)
 
           topCreators(history2022);
           topVideos(history2022);
           topSummary(history2022);
+
+          JSZip.loadAsync(file) 
+          .then(function ($content) {
+              return $content.files[ "Takeout/YouTube and YouTube Music/my-comments/my-comments.html" ].async("text");
+          })
+          .then(function (text) { //replace with read of multiple file then return array of usefile files instead of lodading 3times
+            let comments = $(text)[2].childNodes;
+            let commentsList = getCommentsList(comments)
+            topComments(commentsList, history2022);
+          });
+
+          JSZip.loadAsync(file) 
+          .then(function ($content) {
+              return $content.files[ "Takeout/YouTube and YouTube Music/playlists/Liked videos.csv" ].async("text");
+          })
+          .then(function (text) { //replace with read of multiple file then return array of usefile files instead of lodading 3times
+            // console.log(text)
+          });
+
+
+
         });
 
-        JSZip.loadAsync(file) 
-        .then(function ($content) {
-            return $content.files[ "Takeout/YouTube and YouTube Music/my-comments/my-comments.html" ].async("text");
-        })
-        .then(function (text) { //replace with read of multiple file then return array of usefile files instead of lodading 3times
-          let comments = $(text)[2].childNodes;
-          let commentsList = getCommentsList(comments)
-          topComments(commentsList);
-        });
+
 
       });
     </script>

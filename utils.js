@@ -82,7 +82,7 @@ function findMostViewedVideo(videos) {
 async function topCreators(history) {
   let mostViewedChannel = findMostFrequentChannel(history)
   let topCreatorsDivs = [];
-  for (var i = 0; i < 5; i++) {
+  for (var i = 0; i < 50; i++) {
     topCreatorsDivs.push(`
     <div class="creator">
     <img class="creator-image" src="${await getPP(mostViewedChannel.count[i][0], history)}" alt="creator 1">
@@ -103,7 +103,7 @@ async function topCreators(history) {
 async function topVideos(history) {
   var mostViewedVideo = findMostViewedVideo(history)
   let topVideosDivs = [];
-  for (var i = 0; i < 3; i++) {
+  for (var i = 0; i < 50; i++) {
     videoURL = mostViewedVideo.count[i][0]
     videoID = videoURL.split("?v=")[1]
     videoName = history.find(x => x.titleUrl == mostViewedVideo.count[i][0]).title.split("Watched ")[1]
@@ -111,9 +111,9 @@ async function topVideos(history) {
     <div class="video">
       <div class="video-rank">${i + 1}.</div>
       <div class="video-name">
-        <img src="https://i.ytimg.com/vi/${videoID}/hqdefault.jpg"/>
-        <br/>
         <a href="${videoURL}">
+          <img src="https://i.ytimg.com/vi/${videoID}/hqdefault.jpg"/>
+          <br/>
           ${videoName}
         </a>
         <br/>
@@ -142,54 +142,73 @@ async function topSummary(history) {
   let channelWatched = findMostFrequentChannel(history).count.length
 
   const topSummaryDiv = `
+    <h1>2022 Summary</h1>
     <div class="top-summary">
       <div>
-        <h2>Videos watched in 2022</h2>
-        <a style="justify">${historylength}</a> <br/>
+        <h3>Videos watched in 2022</h3>
+        <h1 style="justify">${historylength}</h1> <br/>
       </div>
       <div class="firstVideoOfYear">
-        <h2>First video watched of the year</h2>
-        <img href="${firstVideoOfYear.titleUrl}" src="https://i.ytimg.com/vi/${videoID}/hqdefault.jpg"/><br/>
-        <a href="${firstVideoOfYear.titleUrl}">${firstVideoName}</a><br/>
-        <a> by ${firstVideoOfYear.subtitles[0].name}</a> <br/>
+        <h3>First video watched of the year</h3>
+        <a href="${firstVideoOfYear.titleUrl}">
+          <img src="https://i.ytimg.com/vi/${videoID}/hqdefault.jpg"/><br/>
+          ${firstVideoName}<br/>
+          by ${firstVideoOfYear.subtitles[0].name}
+        </a><br/>
       </div>
       <div>
-        <h2>Channels watched</h2>
-        <a>${channelWatched}</a> <br/>
+        <h3>Channels watched</h3>
+        <h1>${channelWatched}</h1> <br/>
       </div>
     </div>
   `;
   $(".top-summary").replaceWith(topSummaryDiv);
 }
 
-function getMostCommentedChannel(history, comments) {
-
+function filterVideo(comment, history) {
+  return 
 }
 
-async function topComments(commentsList) {
+function getMostCommentedChannel(comments,history) {
+  console.log("historylengh=== "+ history.length)
+  for (let i = 0; i < 10; i++) {
+    let commentURL = comments[i].videoURL.replace("http","https")
+    console.log(commentURL)
+    const result = history.find(({ titleUrl }) => titleUrl === commentURL);
+    console.log(result)
+    
+  }
+  return 0;
+}
+
+async function topComments(commentsList, history) {
   let numberOfComments = commentsList.length
   let firstCommentOfYear = commentsList[numberOfComments - 1]
+  let aaa = getMostCommentedChannel(commentsList, history)
+  // console.log(aaa)
   const topCommentDiv = `
-    <div class="top-comment">
-      <div>
-        <h2>Number of comment in 2022</h2>
-        <a style="justify">${numberOfComments}</a> <br/>
+    <h1> Comments </h1>
+    <div class="top-comments">
+      <div class="comment">
+        <h3>Number of comments</h3>
+        <h1 style="justify">${numberOfComments}</h1> 
       </div>
-      <div>
-        <h2>Channel most commented on in 2022</h2>
+      <div class="comment">
+        <h3>Channel most commented on</h3>
         <div class="creator">
+          <a>creator1</a>
           <img class="creator-image" src="" alt="creator 1">
-          <div class="creator-name"> (x)</div>
+          <div class="creator-name"> (213x)</div>
         </div>
       </div>
-      <div class="firstVideoOfYear">
-        <h2>First comment of 2022</h2>
-        <img href="${firstCommentOfYear.commentURL}" src="${firstCommentOfYear.videoThumbnail}"/><br/>
-        <a href="${firstCommentOfYear.commentURL}">${firstCommentOfYear.comment}</a><br/>
+      <div class="comment">
+        <h3>First comment</h3>
+        <a href="${firstCommentOfYear.commentURL}">
+        <img src="${firstCommentOfYear.videoThumbnail}"/><br/>
+        ${firstCommentOfYear.comment}</a>
       </div>
     </div>
   `;
-  console.log(topCommentDiv)
   $(".top-comments").replaceWith(topCommentDiv);
 }
 
@@ -200,7 +219,8 @@ function getCommentsList(comments){
     let commentText = comments[i].innerText.split(" UTC.")[1]
     let commentTime = new Date(comments[i].innerText.split(" UTC.")[0].split("video at ")[1])
     let commentURL = comments[i].innerHTML.split('"')[1].replace("&amp;","&")
-    let videoID = commentURL.split("&")[0].split("?v=")[1]
+    let videoURL = commentURL.split("&lc")[0]
+    let videoID = videoURL.split("?v=")[1]
     let videoThumbnail = `https://i.ytimg.com/vi/${videoID}/hqdefault.jpg`
     let commentUrl = comments[i].innerHTML.split('"')[1]
     
@@ -208,6 +228,7 @@ function getCommentsList(comments){
       "comment": commentText,
       "time": commentTime,
       "commentURL" : commentURL,
+      "videoURL" : videoURL,
       "videoThumbnail" : videoThumbnail
     }
     if (!comments[i].innerHTML.includes("\">post</a>")){
@@ -224,7 +245,7 @@ function getCommentsList(comments){
 async function getPP(channelName, history) {
   channelURL = history.find(video => video.subtitles[0].name === channelName).subtitles[0].url
   channelID = channelURL.split("youtube.com/")[1].split("channel/").reverse()[0]
-  url = "https://bd78-207-134-103-162.ngrok.io/channel-picture?channel_id=" + channelID
+  url = "https://yt-wrapped-ttw.vercel.app/channel-picture?channel_id=" + channelID
   return fetch(url,
     {
       headers: {
