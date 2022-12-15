@@ -3,11 +3,11 @@
   <head>
     <title>Youtube Wrapped</title>
     <meta charset="UTF-8" />
-    <style>
+    <!-- <style>
       body {
         background-color: #d70000;
         font-family: 'Arial', sans-serif;
-        color: #ffffff;
+        color: #fff;
       }
       h1 {
         font-size: 36px;
@@ -79,7 +79,7 @@
         height: 270px;        
         object-fit: cover;
       }
-      .top-comments {
+      .top-comments , .top-likes{
         margin-top: 50px;
         display: flex;
         flex-wrap: wrap;
@@ -87,8 +87,18 @@
         justify-content: space-around;
         font-size: 24px;
       }
+      .thumbnail-container{
+        width: 320px;
+        height: 178px;
+        overflow: hidden;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .thumbnail-container > img{
+        width: 320px;
+        margin: -30px 0 0px 0;
+      }
       .comment {
-        margin-top: 25px;
         width: 33%;
       }
       .comment > a > img {
@@ -96,87 +106,157 @@
         height: 178px;        
         object-fit: cover;
       }
+      .commentCreator {
+        text-align: left;
+        margin: 25px;
+      }
+      .commentCreator > img{
+        border-radius: 20px;
+        width: 40px
+      }
+      .commentCreator > a{
+        vertical-align: super;
 
-    </style>
+      }
+
+
+    </style> -->
+    <link rel="stylesheet" href="style.css">
+
   </head>
 
   <body>
     <div id="zipUpload">
+      <a href="https://twitter.com/share?url=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAADCAIAAAA7ljmRAAAAGElEQVQIW2P4DwcMDAxAfBvMAhEQMYgcACEHG8ELxtbPAAAAAElFTkSuQmCC&text=IMAGE_TEXT" target="_blank">
+        <button>Share on Twitter</button>
+      </a>
       <h3>Choose the takeout zip file</h3>
       <p class="note">
         Generate the zip on takeout.google.com
         </br>
-        Explort only youtube data (watch history, comments ans playlisst )
+        Export only youtube data (watch history, comments ans playlist )
+        </br>
+        Your data is not sent anywhere. Works even offline.
       </p>
-      <input type="file" id="file" name="file" accept="zip" multiple /><br/>
+      <input type="file" id="file" name="file" accept="zip" /><br/>
     </div>
 
     <div class="top-summary"></div>
     <div class="top-creators"></div>
     <div class="top-video"></div>
     <div class="top-likes"></div>
-    <!-- number of likes
-    most liked channel
-    most disliked channel -->
-    
     <div class="top-comments"></div>
 
-    
+    <!-- <button>Share on twitter</button> -->
+
     
     <script type="text/javascript" src="https://stuk.github.io/jszip/test/jquery-1.8.3.min.js"></script>
     <script type="text/javascript" src="https://stuk.github.io/jszip/dist/jszip.js"></script>
-    <script src="https://unpkg.com/papaparse@latest/papaparse.min.js"></script>
+    <script src="./csv/index.min.js"></script>
+    <script type="text/javascript" src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script type="text/javascript" src="utils.js"></script>
 
     <script>
       $("#file").on("change", function (event) {
         // Closure to capture the file information.
-        var file = event.target.files[0];
+        let file = event.target.files[0];
 
         JSZip.loadAsync(file) // 1) read the Blob
-        .then(function ($content) {
-            return $content.files[ "Takeout/YouTube and YouTube Music/history/watch-history.json" ].async("text");
-            
+        .then(function (content) {
+          if (Object.keys(content.files).includes('Takeout/YouTube and YouTube Music/history/watch-history.json')){
+            return content.files[ "Takeout/YouTube and YouTube Music/history/watch-history.json" ].async("text");
+          } else if (Object.keys(content.files).includes('Takeout/YouTube y YouTube Music/historial/historial-de-reproducciones.json')){
+            return content.files[ "Takeout/YouTube and YouTube Music/historial/historial-de-reproducciones.json" ].async("text");
+          } else if (Object.keys(content.files).includes('Takeout/YouTube et YouTube Music/historique/watch-history.json')){
+            return content.files[ "Takeout/YouTube et YouTube Music/historique/watch-history.json" ].async("text");
+          }else{
+            console.log( Object.keys(content.files) )
+            alert("can't find watch-history.json")
+          }
         })
         .then(function (text) {
           $( "#zipUpload" ).replaceWith( "" );
-          var history = JSON.parse(text);
+          let history = JSON.parse(text);
           
-          var history2022 = history.filter(filterCurrentYear)
-          // var history2022 = history2022.filter(filternotAfter)
+          let history2022 = history.filter(filterCurrentYear)
           history2022 = history2022.filter(filterRemovedVideos)
-
           console.log(history2022)
-
           topCreators(history2022);
           topVideos(history2022);
           topSummary(history2022);
 
+          // likes
           JSZip.loadAsync(file) 
-          .then(function ($content) {
-              return $content.files[ "Takeout/YouTube and YouTube Music/my-comments/my-comments.html" ].async("text");
+          .then(function (content) {
+            if (Object.keys(content.files).includes("Takeout/YouTube and YouTube Music/playlists/Liked videos.csv")){
+              return content.files[ "Takeout/YouTube and YouTube Music/playlists/Liked videos.csv" ].async("text");
+            } else if (Object.keys(content.files).includes("Takeout/YouTube y YouTube Music/playlists/Liked videos.csv")){
+              return content.files[ "Takeout/YouTube y YouTube Music/playlists/Liked videos.csv" ].async("text");
+            } else if (Object.keys(content.files).includes("Takeout/YouTube et YouTube Music/playlists/Liked videos.csv")){
+              return content.files[ "Takeout/YouTube et YouTube Music/playlists/Liked videos.csv" ].async("text");
+            }else{
+              console.log( Object.keys(content.files) )
+              alert("can't find Liked videos.csv")
+            }
+          })
+          .then(function (text) { 
+            let parsed = parse(text, {},(value, row, col) => {
+              return col === 1 ? "https://www.youtube.com/watch?v=" + value : Date.parse(value);
+            }).splice(4)
+            parsed.pop() // remove last empty row
+            topLikes(parsed,history2022)
+          });
+
+          // comments
+          JSZip.loadAsync(file) 
+          .then(function (content) {
+              if (Object.keys(content.files).includes("Takeout/YouTube and YouTube Music/my-comments/my-comments.html")){
+                return content.files[ "Takeout/YouTube and YouTube Music/my-comments/my-comments.html" ].async("text");
+              } else if (Object.keys(content.files).includes("Takeout/YouTube and YouTube Music/playlists/Liked videos.csv")){
+                return content.files[ "Takeout/YouTube and YouTube Music/playlists/Liked videos.csv" ].async("text");
+              } else if (Object.keys(content.files).includes("Takeout/YouTube and YouTube Music/playlists/Liked videos.csv")){
+                return content.files[ "Takeout/YouTube and YouTube Music/playlists/Liked videos.csv" ].async("text");
+              } else{
+              console.log( Object.keys(content.files) )
+              alert("can't find my-comments.html")
+            }
           })
           .then(function (text) { //replace with read of multiple file then return array of usefile files instead of lodading 3times
             let comments = $(text)[2].childNodes;
             let commentsList = getCommentsList(comments)
             topComments(commentsList, history2022);
+
+            let options= {
+              backgroundColor: "#000000",
+              allowTaint: true,
+              useCORS:true
+            }
+
+            html2canvas(document.querySelector(".top-comments"),options).then(function(canvas) {
+                document.body.appendChild(canvas);
+                canvas.toBlob((blob)=>{ // save to clipboard
+                  try {
+                    navigator.clipboard.write([
+                        new ClipboardItem(
+                            Object.defineProperty({}, blob.type, {
+                        value: blob,
+                        enumerable: true
+                      })
+                        )
+                    ]);
+                  } catch (error) {
+                      console.error(error);
+                  }
+                })
+            });
+
+
           });
-
-          JSZip.loadAsync(file) 
-          .then(function ($content) {
-              return $content.files[ "Takeout/YouTube and YouTube Music/playlists/Liked videos.csv" ].async("text");
-          })
-          .then(function (text) { //replace with read of multiple file then return array of usefile files instead of lodading 3times
-            // console.log(text)
-          });
-
-
-
         });
-
-
-
       });
+
+
+
     </script>
   </body>
 </html>
@@ -184,13 +264,9 @@
 
 
 <!-- 
-  first video
   last video
   oldest video
-  most comment on channel
-  most liked chanel
   latest liked video
-  first liked video
   total channel watched
   total video watched
   random video

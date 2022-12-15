@@ -1,6 +1,9 @@
 from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
 import requests, os
+import base64
+import boto3
+import uuid
 
 app = Flask(__name__)
 CORS(app)
@@ -57,3 +60,24 @@ def video_thumbnail():
   # Return the thumbnail URL as a JSON response
   return jsonify({ 'thumbnail_url': thumbnail_url })
 
+
+@app.route('/share', methods=['POST'])
+def upload_image_to_s3():
+    # Get the base64 image from the request
+    image_base64 = request.json['image']
+
+    # Decode the base64 image and save it to a file
+    image_binary = base64.decodebytes(image_base64.encode('utf-8'))
+    # Generate a unique identifier for the image
+    image_uuid = str(uuid.uuid4())
+
+    with open(f'{image_uuid}.jpg', 'wb') as f:
+        f.write(image_binary)
+
+    # Upload the image to S3 with public rights
+    session = boto3.Session(profile_name='ttwthomas')
+    s3 = session.client('s3')
+    s3.upload_file(f'{image_uuid}.jpg', 'youtuberecap', f'share/{image_uuid}.jpg', ExtraArgs={'ACL': 'public-read'})
+
+     # Return the S3 URL of the image
+    return f'https://youtuberecap.s3.eu-west-3.amazonaws.com/share/{image_uuid}.jpg'
