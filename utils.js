@@ -94,7 +94,7 @@ async function topCreators(history) {
     `)
   }
   const topCreators = `
-  <h1>Your Top Youtuber of 2022</h1>
+  <h1>Your Top Youtubers of <span style="color: red">2022</span></h1>
   <div class="top-creators">
     ${topCreatorsDivs.join('')}
   </div>
@@ -128,7 +128,7 @@ async function topVideos(history) {
     `)
   }
   const topVideo = `
-  <h1>Most Viewed Video of 2022</h1>
+  <h1>Most Viewed Video of <span style="color: red">2022</span></h1>
   <div class="top-videos">
     ${topVideosDivs.join('')}
   </div>
@@ -145,26 +145,26 @@ async function topSummary(history) {
   let channelWatched = findMostFrequentChannel(history).count.length
 
   const topSummaryDiv = `
-    <h1>2022 Summary</h1>
+    <h1><span style="color: red">2022</span> Summary</h1>
     <div class="top-summary">
       <div>
-        <h3>Videos watched in 2022</h3>
+        <h3>Videos watched in <span style="color: red">2022</span></h3>
         <h1>${historylength}</h1> <br/>
       </div>
+      <div>
+      <h3>Channels watched</h3>
+      <h1>${channelWatched}</h1> <br/>
+      </div>
       <div class="firstVideoOfYear">
-        <h3>First video watched of the year</h3>
+        <h3>First video watched of the <span style="color: red">year</span></h3>
         <a href="${firstVideoOfYear.titleUrl}">
           <div class="thumbnail-container">
             <img src="https://i.ytimg.com/vi/${videoID}/hqdefault.jpg"/>
           </div>
           <br/>
           ${firstVideoName}<br/>
-          by ${firstVideoOfYear.subtitles[0].name}
-        </a><br/>
-      </div>
-      <div>
-        <h3>Channels watched</h3>
-        <h1>${channelWatched}</h1> <br/>
+        </a>
+        by ${firstVideoOfYear.subtitles[0].name}<br/>
       </div>
     </div>
   `;
@@ -227,7 +227,7 @@ async function topComments(commentsList, history) {
         ${topCreatorsComment.join('')}
       </div>
       <div class="comment">
-        <h3>First comment of 2022</h3>
+        <h3>First comment of <span style="color: red">2022</span></h3>
         <a href="${firstCommentOfYear.commentURL}">
         <div class="thumbnail-container"><img src="${firstCommentOfYear.videoThumbnail}"/></div>
         <br/>
@@ -332,7 +332,7 @@ async function topLikes(likesList, history){
       ${topCreatorsLikes.join('')}
       </div>
       <div class="comment">
-        <h3>First like of 2022</h3>
+        <h3>First like of <span style="color: red">2022</span></h3>
         <a href="${firstLikeOfYearURL}">
         <div class="thumbnail-container">
           <img src="${firstLikeOfYear.videoThumbnail}">
@@ -348,7 +348,11 @@ async function topLikes(likesList, history){
 
 async function getPP(channelName, history) {
   channelURL = history.find(video => video.subtitles[0].name === channelName).subtitles[0].url
-  channelID = channelURL.split("youtube.com/")[1].split("channel/").reverse()[0]
+  if (channelURL){
+    channelID = channelURL.split("youtube.com/")[1].split("channel/").reverse()[0]
+  }else{
+    return "defaultpp.png"; 
+  }
   url = "https://yt-wrapped-ttw.vercel.app/channel-picture?channel_id=" + channelID
   return fetch(url,
     {
@@ -364,6 +368,51 @@ async function getPP(channelName, history) {
     });
 }
 
+
+async function shareDiv(history) {
+  let firstVideoOfYear = history[history.length - 1]
+  let firstVideoName = firstVideoOfYear.title.length < 57 ? firstVideoOfYear.title.split("Watched ")[1] : firstVideoOfYear.title.split("Watched ")[1].slice(0, 50) + "..."
+  let videoID = firstVideoOfYear.titleUrl.split("?v=")[1]
+  let historylength = history.length
+  let channelWatched = findMostFrequentChannel(history).count.length
+
+
+  let mostViewedChannel = findMostFrequentChannel(history)
+  let topCreatorsDivs = [];
+  for (let i = 0; i < 10; i++) {
+    topCreatorsDivs.push(`
+    <div class="commentCreator">
+    <img src="${await getPP(mostViewedChannel.count[i][0], history)}">
+    <div class="creator-name">#${i + 1} ${mostViewedChannel.count[i][0]}</div>
+    </div>
+    `)
+  }
+  
+  const topSummaryDiv = `
+    <div style="width:800px ; height: 800px">
+      <h1><span style="color: red">YT</span>recap.com</h1>
+      <div class="top-summary">
+        <div>
+          <h3>Videos watched in <span style="color: red">2022</span></h3>
+          <h1>${historylength}</h1> <br/>
+        </div>
+        <div>
+        <h3>Channels watched</h3>
+        <h1>${channelWatched}</h1> <br/>
+        </div>
+
+        <div class="comment">
+        ${topCreatorsDivs.join('')}
+        </div>
+      </div>
+    </div>
+  `;
+  console.log(topSummaryDiv)
+
+
+
+  $(".shareDiv").replaceWith(topSummaryDiv);
+}
 
 
 // TODO

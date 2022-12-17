@@ -3,11 +3,13 @@
   <head>
     <title>Youtube Wrapped</title>
     <meta charset="UTF-8" />
-    <!-- <style>
+    <link href="https://fonts.cdnfonts.com/css/montserrat" rel="stylesheet">
+                
+    <style>
       body {
-        background-color: #d70000;
-        font-family: 'Arial', sans-serif;
-        color: #fff;
+        background-color: #ffffff;
+        font-family: 'Montserrat', sans-serif;
+        color: #333333;
       }
       h1 {
         font-size: 36px;
@@ -15,7 +17,8 @@
         margin-top: 50px;
       }
       a:link, a:visited {
-        color: white;
+        color: #333333;
+        text-decoration: none; 
       }
       .top-creators{
         display: flex;
@@ -31,6 +34,19 @@
         height: 178px;        
         object-fit: cover;
       }
+
+
+      .top-summary, .top-comments, .top-creators, .top-likes, .top-videos{
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 16px;
+        box-shadow: 0 4px 30px rgb(0 0 0 / 10%);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        padding-bottom: 20px;
+        margin-right: 10px;
+        margin-left: 10px;
+      }
+
       .top-summary {
         text-align: center;
         display: flex;
@@ -38,9 +54,6 @@
         justify-content: space-around;
         margin-top: 50px;
         font-size: 24px;
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
       }
       .creator {
         text-align: center;
@@ -119,17 +132,99 @@
 
       }
 
+      .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1; /* Sit on top */
+        padding-top: 100px; /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+      }
 
-    </style> -->
-    <link rel="stylesheet" href="style.css">
+      /* Modal Content */
+      .modal-content {
+        position: relative;
+        background-color: #fefefe;
+        margin: auto;
+        padding: 0;
+        border: 1px solid #888;
+        width: 80%;
+        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+        -webkit-animation-name: animatetop;
+        -webkit-animation-duration: 0.4s;
+        animation-name: animatetop;
+        animation-duration: 0.4s
+      }
+
+      /* Add Animation */
+      @-webkit-keyframes animatetop {
+        from {top:-300px; opacity:0} 
+        to {top:0; opacity:1}
+      }
+
+      @keyframes animatetop {
+        from {top:-300px; opacity:0}
+        to {top:0; opacity:1}
+      }
+
+      /* The Close Button */
+      .close {
+        color: white;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+      }
+
+      .close:hover,
+      .close:focus {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      .modal-header {
+        padding: 2px 16px;
+        background-color: #5cb85c;
+        color: white;
+      }
+
+      .modal-body {
+        padding: 2px 16px;
+        margin-bottom: 20px;
+      }
+
+      .float{
+        position:fixed;
+        width:150px;
+        height:50px;
+        bottom:40px;
+        right:40px;
+        background-color:rgb(255, 0, 0);
+        color:#FFF;
+        border-radius:50px;
+        text-align:center;
+        box-shadow: 2px 2px 3px #999;
+        padding-right: 20px;
+        padding-left: 20px;
+      }
+
+      .my-float{
+        margin-top:22px;
+      }
+
+    </style>
+    <!-- <link rel="stylesheet" href="style.css">  -->
 
   </head>
 
   <body>
     <div id="zipUpload">
-      <a href="https://twitter.com/share?url=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAADCAIAAAA7ljmRAAAAGElEQVQIW2P4DwcMDAxAfBvMAhEQMYgcACEHG8ELxtbPAAAAAElFTkSuQmCC&text=IMAGE_TEXT" target="_blank">
-        <button>Share on Twitter</button>
-      </a>
+
       <h3>Choose the takeout zip file</h3>
       <p class="note">
         Generate the zip on takeout.google.com
@@ -141,14 +236,12 @@
       <input type="file" id="file" name="file" accept="zip" /><br/>
     </div>
 
+
     <div class="top-summary"></div>
     <div class="top-creators"></div>
     <div class="top-video"></div>
     <div class="top-likes"></div>
     <div class="top-comments"></div>
-
-    <!-- <button>Share on twitter</button> -->
-
     
     <script type="text/javascript" src="https://stuk.github.io/jszip/test/jquery-1.8.3.min.js"></script>
     <script type="text/javascript" src="https://stuk.github.io/jszip/dist/jszip.js"></script>
@@ -184,6 +277,7 @@
           topCreators(history2022);
           topVideos(history2022);
           topSummary(history2022);
+          shareDiv(history2022);
 
           // likes
           JSZip.loadAsync(file) 
@@ -210,15 +304,15 @@
           // comments
           JSZip.loadAsync(file) 
           .then(function (content) {
-              if (Object.keys(content.files).includes("Takeout/YouTube and YouTube Music/my-comments/my-comments.html")){
-                return content.files[ "Takeout/YouTube and YouTube Music/my-comments/my-comments.html" ].async("text");
-              } else if (Object.keys(content.files).includes("Takeout/YouTube and YouTube Music/playlists/Liked videos.csv")){
-                return content.files[ "Takeout/YouTube and YouTube Music/playlists/Liked videos.csv" ].async("text");
-              } else if (Object.keys(content.files).includes("Takeout/YouTube and YouTube Music/playlists/Liked videos.csv")){
-                return content.files[ "Takeout/YouTube and YouTube Music/playlists/Liked videos.csv" ].async("text");
-              } else{
-              console.log( Object.keys(content.files) )
-              alert("can't find my-comments.html")
+            if (Object.keys(content.files).includes("Takeout/YouTube and YouTube Music/my-comments/my-comments.html")){
+              return content.files[ "Takeout/YouTube and YouTube Music/my-comments/my-comments.html" ].async("text");
+            } else if (Object.keys(content.files).includes("Takeout/YouTube and YouTube Music/playlists/Liked videos.csv")){
+              return content.files[ "Takeout/YouTube and YouTube Music/playlists/Liked videos.csv" ].async("text");
+            } else if (Object.keys(content.files).includes("Takeout/YouTube and YouTube Music/playlists/Liked videos.csv")){
+              return content.files[ "Takeout/YouTube and YouTube Music/playlists/Liked videos.csv" ].async("text");
+            } else{
+            console.log( Object.keys(content.files) )
+            alert("can't find my-comments.html")
             }
           })
           .then(function (text) { //replace with read of multiple file then return array of usefile files instead of lodading 3times
@@ -226,38 +320,93 @@
             let commentsList = getCommentsList(comments)
             topComments(commentsList, history2022);
 
-            let options= {
-              backgroundColor: "#000000",
-              allowTaint: true,
-              useCORS:true
-            }
-
-            html2canvas(document.querySelector(".top-comments"),options).then(function(canvas) {
-                document.body.appendChild(canvas);
-                canvas.toBlob((blob)=>{ // save to clipboard
-                  try {
-                    navigator.clipboard.write([
-                        new ClipboardItem(
-                            Object.defineProperty({}, blob.type, {
-                        value: blob,
-                        enumerable: true
-                      })
-                        )
-                    ]);
-                  } catch (error) {
-                      console.error(error);
-                  }
-                })
-            });
-
-
           });
         });
       });
-
-
-
     </script>
+
+    <a href="#" class="float" id="shareButton">
+      <div style="display: flex;">
+        <svg viewBox="0 0 30 24" style="pointer-events: none; display: block; fill: white">
+          <g mirror-in-rtl="">
+            <path d="M15,5.63L20.66,12L15,18.37V15v-1h-1c-3.96,0-7.14,1-9.75,3.09c1.84-4.07,5.11-6.4,9.89-7.1L15,9.86V9V5.63 M14,3v6 C6.22,10.13,3.11,15.33,2,21c2.78-3.97,6.44-6,12-6v6l8-9L14,3L14,3z"></path>
+          </g>
+        </svg>
+        <span style="padding-top: 4px; color: white; font-size: 2em">Share</span>
+      </div>
+    </a>
+
+    <div id="myModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <span class="close">&times;</span>
+          <h2>Modal Header</h2>
+        </div>
+        <div class="shareDiv">
+          <a>should be replaced</a>  
+        </div>
+        <a href="https://twitter.com/share?url=${url}&text=${text}" target="_blank">
+          <button id="share">Share on Twitter</button>
+        </a>
+      </div>
+    </div>
+
+    <script>
+      // Get the modal
+      var modal = document.getElementById("myModal");
+      
+      // Get the button that opens the modal
+      var btn = document.getElementById("shareButton");
+      
+      // Get the <span> element that closes the modal
+      var span = document.getElementsByClassName("close")[0];
+      
+      // When the user clicks the button, open the modal 
+      btn.onclick = function() {
+        modal.style.display = "block";
+      }
+      
+      // When the user clicks on <span> (x), close the modal
+      span.onclick = function() {
+        modal.style.display = "none";
+      }
+      
+      // When the user clicks anywhere outside of the modal, close it
+      window.onclick = function(event) {
+        if (event.target == modal) {
+          modal.style.display = "none";
+        }
+      }
+      </script>
+
+      <script>
+      var btn = document.getElementById("clipboard");
+      btn.onclick = function() {
+        let options= {
+          backgroundColor: "#ffffff",
+          allowTaint: true,
+          useCORS:true
+        }
+        html2canvas(document.querySelector(".top-comments"),options).then(function(canvas) {
+            document.body.appendChild(canvas);
+            canvas.toBlob((blob)=>{ // save to clipboard
+              try {
+                navigator.clipboard.write([
+                    new ClipboardItem(
+                        Object.defineProperty({}, blob.type, {
+                    value: blob,
+                    enumerable: true
+                  })
+                    )
+                ]);
+              } catch (error) {
+                  console.error(error);
+              }
+            })
+        });
+      }
+
+      </script>
   </body>
 </html>
 
