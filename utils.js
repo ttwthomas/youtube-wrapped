@@ -101,15 +101,22 @@ async function topCreators(history) {
   `;
 
   $(".top-creators").replaceWith(topCreators);
+  $(".top-creators").show();
 }
 
 async function topVideos(history) {
   let mostViewedVideo = findMostViewedVideo(history)
   let topVideosDivs = [];
   for (let i = 0; i < 10; i++) {
-    videoURL = mostViewedVideo.count[i][0]
-    videoID = videoURL.split("?v=")[1]
-    videoName = history.find(x => x.titleUrl == mostViewedVideo.count[i][0]).title.split("Watched ")[1]
+    let videoURL = mostViewedVideo.count[i][0]
+    let videoID = videoURL.split("?v=")[1]
+    let videoName = history.find(x => x.titleUrl == mostViewedVideo.count[i][0]).title.split("Watched ")[1]
+    if (videoName === undefined){
+      videoName = history.find(x => x.titleUrl == mostViewedVideo.count[i][0]).title.split("Vous avez regardé ")[1]
+    } 
+    if (videoName === undefined){
+      videoName = history.find(x => x.titleUrl == mostViewedVideo.count[i][0]).title.split("Has visto ")[1]
+    }
     topVideosDivs.push(`
     <div class="video">
       <div class="video-rank">${i + 1}.</div>
@@ -135,11 +142,18 @@ async function topVideos(history) {
   `;
 
   $(".top-video").replaceWith(topVideo);
+  $(".top-video").show();
 }
 
 async function topSummary(history) {
   let firstVideoOfYear = history[history.length - 1]
   let firstVideoName = firstVideoOfYear.title.length < 57 ? firstVideoOfYear.title.split("Watched ")[1] : firstVideoOfYear.title.split("Watched ")[1].slice(0, 50) + "..."
+  if (firstVideoName === undefined){
+    firstVideoName = firstVideoOfYear.title.length < 57 ? firstVideoOfYear.title.split("Vous avez regardé ")[1] : firstVideoOfYear.title.split("Vous avez regardé ")[1].slice(0, 50) + "..."
+  } 
+  if (firstVideoName === undefined){
+    firstVideoName = firstVideoOfYear.title.length < 57 ? firstVideoOfYear.title.split("Has visto ")[1] : firstVideoOfYear.title.split("Has visto ")[1].slice(0, 50) + "..."
+  }
   let videoID = firstVideoOfYear.titleUrl.split("?v=")[1]
   let historylength = history.length
   let channelWatched = findMostFrequentChannel(history).count.length
@@ -169,6 +183,7 @@ async function topSummary(history) {
     </div>
   `;
   $(".top-summary").replaceWith(topSummaryDiv);
+  $(".top-summary").show();
 }
 
 function getMostCommentedChannel(comments, history) {
@@ -236,6 +251,7 @@ async function topComments(commentsList, history) {
     </div>
   `;
   $(".top-comments").replaceWith(topCommentDiv);
+  $(".top-comments").show();
 }
 
 
@@ -300,6 +316,13 @@ async function topLikes(likesList, history){
   let firstLikeOfYearURL = likesList[numberOfLikes - 1][0]
   let firstLikeOfYearVideo = history.find(video => video.titleUrl === firstLikeOfYearURL);
   let firstLikeOfYearvideoID = firstLikeOfYearURL.split("?v=")[1]
+  let videoTitle = firstLikeOfYearVideo.title.split("Watched ")[1]
+  if (videoTitle === undefined){
+    videoTitle = firstLikeOfYearVideo.title.split("Vous avez regardé ")[1]
+  }
+  if (videoTitle === undefined){
+    videoTitle = firstLikeOfYearVideo.title.split("Has visto ")[1]
+  }
   let firstLikeOfYear = {
     URL : firstLikeOfYearURL,
     channelName: firstLikeOfYearVideo.subtitles[0].name,
@@ -344,16 +367,20 @@ async function topLikes(likesList, history){
     </div>
   `;
   $(".top-likes").replaceWith(topLikesDiv);
+  $(".top-likes").show();
+
 }
 
 async function getPP(channelName, history) {
+  // let depaultPPURL = "defaultpp.png"
+  let defaultPPURL = "https://rsddrsoebandi.jemberkab.go.id/assets/img/foto-default-pp.png"
   channelURL = history.find(video => video.subtitles[0].name === channelName).subtitles[0].url
   if (channelURL){
     channelID = channelURL.split("youtube.com/")[1].split("channel/").reverse()[0]
   }else{
-    return "defaultpp.png"; 
+    return defaultPPURL; 
   }
-  url = "https://yt-wrapped-ttw.vercel.app/channel-picture?channel_id=" + channelID
+  url = "http://api.ytrecap.com/channel-picture?channel_id=" + channelID
   return fetch(url,
     {
       headers: {
@@ -364,7 +391,7 @@ async function getPP(channelName, history) {
     .then((data) => data.picture_url)
     .catch((error) => {
       console.error('Error:', error);
-      return "defaultpp.png";
+      return defaultPPURL;
     });
 }
 
@@ -381,37 +408,32 @@ async function shareDiv(history) {
   let topCreatorsDivs = [];
   for (let i = 0; i < 10; i++) {
     topCreatorsDivs.push(`
-    <div class="commentCreator">
+    <div class="shareCreator">
     <img src="${await getPP(mostViewedChannel.count[i][0], history)}">
-    <div class="creator-name">#${i + 1} ${mostViewedChannel.count[i][0]}</div>
+    <a >#${i + 1} ${mostViewedChannel.count[i][0]}</a>
     </div>
     `)
   }
   
   const topSummaryDiv = `
-    <div style="width:800px ; height: 800px">
-      <h1><span style="color: red">YT</span>recap.com</h1>
-      <div class="top-summary">
+    <div class="shareImage" style="width:800px ; height: 700px">
+      <h1 style="margin: 30px"><span style="color: red">YT</span>recap.com</h1>
+      <div class="top-summary" style="margin: 10px">
         <div>
-          <h3>Videos watched in <span style="color: red">2022</span></h3>
-          <h1>${historylength}</h1> <br/>
+          <h3 style="margin: 10px">Videos watched in <span style="color: red">2022</span></h3>
+          <h1 style="margin: 20px">${historylength}</h1>
         </div>
         <div>
-        <h3>Channels watched</h3>
-        <h1>${channelWatched}</h1> <br/>
+        <h3 style="margin: 10px">Channels watched</h3>
+        <h1 style="margin: 20px">${channelWatched}</h1>
         </div>
-
-        <div class="comment">
         ${topCreatorsDivs.join('')}
-        </div>
       </div>
     </div>
   `;
-  console.log(topSummaryDiv)
-
-
 
   $(".shareDiv").replaceWith(topSummaryDiv);
+
 }
 
 

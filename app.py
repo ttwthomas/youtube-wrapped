@@ -31,7 +31,7 @@ def channel_picture():
     picture_url = data['items'][0]['snippet']['thumbnails']['high']['url']
     return jsonify({ 'picture_url': picture_url })
   else :
-    return jsonify({ 'picture_url': "defaultpp.png" })
+    return jsonify({ 'picture_url': "https://rsddrsoebandi.jemberkab.go.id/assets/img/foto-default-pp.png" })
 
   # TODO
   # in python app if id start with @ use search :
@@ -64,7 +64,9 @@ def video_thumbnail():
 @app.route('/share', methods=['POST'])
 def upload_image_to_s3():
     # Get the base64 image from the request
+    print(request)
     image_base64 = request.json['image']
+    image_base64 = image_base64[23:]
 
     # Decode the base64 image and save it to a file
     image_binary = base64.decodebytes(image_base64.encode('utf-8'))
@@ -77,7 +79,8 @@ def upload_image_to_s3():
     # Upload the image to S3 with public rights
     session = boto3.Session(profile_name='ttwthomas')
     s3 = session.client('s3')
-    s3.upload_file(f'{image_uuid}.jpg', 'youtuberecap', f'share/{image_uuid}.jpg', ExtraArgs={'ACL': 'public-read'})
-
+    s3.upload_file(f'{image_uuid}.jpg', 'youtuberecap', f'share/{image_uuid}.jpg', ExtraArgs={'ACL': 'public-read', 'ContentType': "image/jpeg",})
+    url = f'https://youtuberecap.s3.eu-west-3.amazonaws.com/share/{image_uuid}.jpg' 
      # Return the S3 URL of the image
-    return f'https://youtuberecap.s3.eu-west-3.amazonaws.com/share/{image_uuid}.jpg'
+    return jsonify({ 'sharePictureUrl': url })
+

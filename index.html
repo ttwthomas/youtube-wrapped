@@ -129,14 +129,22 @@
       }
       .commentCreator > a{
         vertical-align: super;
-
+        
       }
-
+      .shareCreator {
+        text-align: left;
+        margin: 5px;
+        width: 48%;
+      }
+      .shareCreator > img{
+        border-radius: 20px;
+        width: 70px
+      }
       .modal {
         display: none; /* Hidden by default */
         position: fixed; /* Stay in place */
         z-index: 1; /* Sit on top */
-        padding-top: 100px; /* Location of the box */
+        padding-top: 50px; /* Location of the box */
         left: 0;
         top: 0;
         width: 100%; /* Full width */
@@ -153,12 +161,32 @@
         margin: auto;
         padding: 0;
         border: 1px solid #888;
-        width: 80%;
+        width: 800px;
         box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
         -webkit-animation-name: animatetop;
         -webkit-animation-duration: 0.4s;
         animation-name: animatetop;
         animation-duration: 0.4s
+      }
+
+
+      .button {
+        background-color: red;
+        border: none;
+        color: white;
+        padding: 10px 15px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+      }
+
+      .file-upload {
+        background-color: white; 
+        border: none;
+        color: black;
+        padding: 10px 15px;
+        font-size: 23px;
       }
 
       /* Add Animation */
@@ -189,7 +217,7 @@
 
       .modal-header {
         padding: 2px 16px;
-        background-color: #5cb85c;
+        background-color: #ff6565;
         color: white;
       }
 
@@ -229,19 +257,22 @@
       <p class="note">
         Generate the zip on takeout.google.com
         </br>
-        Export only youtube data (watch history, comments ans playlist )
+        Export only youtube data (watch history, comments and playlist )
         </br>
         Your data is not sent anywhere. Works even offline.
+      </br>
+      </br>
+      <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/B3bb2Difpes" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
       </p>
-      <input type="file" id="file" name="file" accept="zip" /><br/>
+      <input class="file-upload" type="file" id="file" name="file" accept="zip" /><br/>
     </div>
 
 
-    <div class="top-summary"></div>
-    <div class="top-creators"></div>
-    <div class="top-video"></div>
-    <div class="top-likes"></div>
-    <div class="top-comments"></div>
+    <div style="display:none" class="top-summary"></div>
+    <div style="display:none" class="top-creators"></div>
+    <div style="display:none" class="top-video"></div>
+    <div style="display:none" class="top-likes"></div>
+    <div style="display:none" class="top-comments"></div>
     
     <script type="text/javascript" src="https://stuk.github.io/jszip/test/jquery-1.8.3.min.js"></script>
     <script type="text/javascript" src="https://stuk.github.io/jszip/dist/jszip.js"></script>
@@ -260,8 +291,8 @@
             return content.files[ "Takeout/YouTube and YouTube Music/history/watch-history.json" ].async("text");
           } else if (Object.keys(content.files).includes('Takeout/YouTube y YouTube Music/historial/historial-de-reproducciones.json')){
             return content.files[ "Takeout/YouTube and YouTube Music/historial/historial-de-reproducciones.json" ].async("text");
-          } else if (Object.keys(content.files).includes('Takeout/YouTube et YouTube Music/historique/watch-history.json')){
-            return content.files[ "Takeout/YouTube et YouTube Music/historique/watch-history.json" ].async("text");
+          } else if (Object.keys(content.files).includes('Takeout/YouTube et YouTube Music/historique/watch-history.json')){
+            return content.files[ "Takeout/YouTube et YouTube Music/historique/watch-history.json" ].async("text");
           }else{
             console.log( Object.keys(content.files) )
             alert("can't find watch-history.json")
@@ -291,6 +322,7 @@
             }else{
               console.log( Object.keys(content.files) )
               alert("can't find Liked videos.csv")
+              return Promise.reject("cant find csv")
             }
           })
           .then(function (text) { 
@@ -313,6 +345,7 @@
             } else{
             console.log( Object.keys(content.files) )
             alert("can't find my-comments.html")
+            return Promise.reject("cant find comments html")
             }
           })
           .then(function (text) { //replace with read of multiple file then return array of usefile files instead of lodading 3times
@@ -338,16 +371,13 @@
 
     <div id="myModal" class="modal">
       <div class="modal-content">
-        <div class="modal-header">
-          <span class="close">&times;</span>
-          <h2>Modal Header</h2>
-        </div>
         <div class="shareDiv">
-          <a>should be replaced</a>  
+          <a>Load your zip file first</a>  
         </div>
-        <a href="https://twitter.com/share?url=${url}&text=${text}" target="_blank">
-          <button id="share">Share on Twitter</button>
-        </a>
+        <button class="button" id="twitter" style="display: none">Share on Twitter</button>
+        <button class="button" id="clipboard">Copy image</button>
+        <button class="button" id="download">Download image</button>
+
       </div>
     </div>
 
@@ -366,11 +396,6 @@
         modal.style.display = "block";
       }
       
-      // When the user clicks on <span> (x), close the modal
-      span.onclick = function() {
-        modal.style.display = "none";
-      }
-      
       // When the user clicks anywhere outside of the modal, close it
       window.onclick = function(event) {
         if (event.target == modal) {
@@ -381,23 +406,23 @@
 
       <script>
       var btn = document.getElementById("clipboard");
+      let options= {
+        backgroundColor: "#ffffff",
+        allowTaint: true,
+        useCORS: true,
+        width: 800,
+      }
       btn.onclick = function() {
-        let options= {
-          backgroundColor: "#ffffff",
-          allowTaint: true,
-          useCORS:true
-        }
-        html2canvas(document.querySelector(".top-comments"),options).then(function(canvas) {
-            document.body.appendChild(canvas);
+        html2canvas(document.querySelector(".shareImage"),options).then(function(canvas) {
             canvas.toBlob((blob)=>{ // save to clipboard
               try {
                 navigator.clipboard.write([
-                    new ClipboardItem(
-                        Object.defineProperty({}, blob.type, {
-                    value: blob,
-                    enumerable: true
-                  })
-                    )
+                  new ClipboardItem(
+                    Object.defineProperty({}, blob.type, {
+                      value: blob,
+                      enumerable: true
+                    })
+                  )
                 ]);
               } catch (error) {
                   console.error(error);
@@ -406,6 +431,49 @@
         });
       }
 
+      //twitter
+      var btn = document.getElementById("twitter");
+      btn.onclick = function() {
+        // get image url
+        //open target _blank  https://twitter.com/share?url=${url}&text=${text}
+        html2canvas(document.querySelector(".shareImage"),options).then(function(canvas) {
+          let pictureBase64 = canvas.toDataURL("image/jpeg");
+          // console.log(pictureBase64) ;
+          url = "http://127.0.0.1:5000/share";
+          fetch(url,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({"image": pictureBase64 })
+            })
+            .then((response) => response.json())
+            .then((data) => {
+              console.log(data)
+              var a = document.createElement('a');
+              let tweet = "Mon recap YouTube 2022"
+              a.href =  `https://twitter.com/share?url=${data.sharePictureUrl}&text=${tweet}`
+              a.target = "_blank"
+              a.click();
+            })
+            .catch((error) => {
+              console.error('Error:', error);
+            });
+        });
+      }
+
+      //download
+      var btn = document.getElementById("download");
+      btn.onclick = function() {
+        html2canvas(document.querySelector(".shareImage"),options).then(function(canvas) {
+          document.body.appendChild(canvas);
+          var a = document.createElement('a');
+          a.href = canvas.toDataURL("image/png");
+          a.download = 'myfile.png';
+          a.click();
+        });
+      }
       </script>
   </body>
 </html>
@@ -421,5 +489,4 @@
   random video
 
   no reupload
-  share
  -->
