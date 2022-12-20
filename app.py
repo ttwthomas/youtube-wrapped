@@ -1,20 +1,30 @@
 from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
+from flask_caching import Cache
 import requests, os
 import base64
 import boto3
 import uuid
 
+config = {
+    "DEBUG": True,          # some Flask specific configs
+    "CACHE_TYPE": "FileSystemCache",  # Flask-Caching related configs
+    "CACHE_DEFAULT_TIMEOUT": 2592000,
+    "CACHE_DIR" : "./"
+}
+
 app = Flask(__name__)
 CORS(app)
+app.config.from_mapping(config)
+cache = Cache(app)
 API_KEY= os.environ.get('API_KEY')
 
 @app.route("/")
 def hello_world():
     return "<p>Hello, World!</p>"
 
-
 @app.route('/channel-picture', methods=['GET'])
+@cache.cached(timeout=2592000)
 def channel_picture():
   # Get the channel ID from the URL query string
   channel_id = request.args.get('channel_id')
