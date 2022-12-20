@@ -94,3 +94,7 @@ def upload_image_to_s3():
      # Return the S3 URL of the image
     return jsonify({ 'sharePictureUrl': url })
 
+
+if __name__ == "__main__":
+   app.run(host='0.0.0.0', port=80)
+

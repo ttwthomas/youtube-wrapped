@@ -13,3 +13,5 @@ six==1.16.0
 urllib3==1.26.13
 Werkzeug==2.2.2
 cachelib==0.9.0
+Flask-Caching==2.0.1
+boto3==1.26.30
