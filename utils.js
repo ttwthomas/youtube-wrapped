@@ -373,7 +373,7 @@ async function topLikes(likesList, history){
 
 async function getPP(channelName, history) {
   // let depaultPPURL = "defaultpp.png"
-  let defaultPPURL = "https://rsddrsoebandi.jemberkab.go.id/assets/img/foto-default-pp.png"
+  let defaultPPURL = "https://ytrecap.com/defaultpp.png"
   channelURL = history.find(video => video.subtitles[0].name === channelName).subtitles[0].url
   if (channelURL){
     channelID = channelURL.split("youtube.com/")[1].split("channel/").reverse()[0]

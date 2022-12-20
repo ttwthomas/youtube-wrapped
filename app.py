@@ -41,7 +41,7 @@ def channel_picture():
     picture_url = data['items'][0]['snippet']['thumbnails']['high']['url']
     return jsonify({ 'picture_url': picture_url })
   else :
-    return jsonify({ 'picture_url': "https://rsddrsoebandi.jemberkab.go.id/assets/img/foto-default-pp.png" })
+    return jsonify({ 'picture_url': "https://ytrecap.com/defaultpp.png" })
 
   # TODO
   # in python app if id start with @ use search :
