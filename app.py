@@ -24,7 +24,7 @@ def hello_world():
     return "<p>Hello, World!</p>"
 
 @app.route('/channel-picture', methods=['GET'])
-@cache.cached(timeout=2592000)
+@cache.cached(timeout=2592000, query_string=True)
 def channel_picture():
   # Get the channel ID from the URL query string
   channel_id = request.args.get('channel_id')
