@@ -10,7 +10,7 @@ config = {
     "DEBUG": True,          # some Flask specific configs
     "CACHE_TYPE": "FileSystemCache",  # Flask-Caching related configs
     "CACHE_DEFAULT_TIMEOUT": 2592000,
-    "CACHE_DIR" : "./"
+    "CACHE_DIR" : "./cache"
 }
 
 app = Flask(__name__)
