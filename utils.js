@@ -1,17 +1,18 @@
 function filterCurrentYear(video) {
-  return Date.parse(video.time) > Date.parse('2022 GMT+1');
+  return Date.parse(video.time) > Date.parse('2022');
 }
 function filterCurrentYearLikes(like) {
-  return like[1] > Date.parse('2022 GMT+1');
+  return like[1] > Date.parse('2022');
 }
 function filternotAfter(video) {
-  return Date.parse(video.time) < Date.parse('2021 GMT+1');
+  return Date.parse(video.time) < Date.parse('2021');
 }
 function filterRemovedVideos(video) {
   return video.subtitles !== undefined;
 }
 function filterRemoveNonVideoFromComments(comment) {
-  return comment.includes("a comment on a video");;
+  const regex = /(un comentario a un vídeo el)|(a comment on a video)|(un commentaire sur une vidéo)/g;
+  return comment.match(regex);;
 }
 
 function sortObjectByValue(obj) {
@@ -85,7 +86,9 @@ function findMostViewedVideo(videos) {
 async function topCreators(history) {
   let mostViewedChannel = findMostFrequentChannel(history)
   let topCreatorsDivs = [];
-  for (let i = 0; i < 10; i++) {
+  let loop;
+  mostViewedChannel.count.length <= 20 ? loop = mostViewedChannel.count : loop = 20
+  for (let i = 0; i < loop; i++) {
     topCreatorsDivs.push(`
     <div class="creator">
     <img class="creator-image" src="${await getPP(mostViewedChannel.count[i][0], history)}">
@@ -102,6 +105,8 @@ async function topCreators(history) {
 
   $(".top-creators").replaceWith(topCreators);
   $(".top-creators").show();
+  $(".float").show();
+
 }
 
 async function topVideos(history) {
@@ -217,9 +222,11 @@ async function topComments(commentsList, history) {
   let numberOfComments = commentsList.length
   let firstCommentOfYear = commentsList[numberOfComments - 1]
   let creators = getMostCommentedChannel(commentsList, history)
-
+  
   let topCreatorsComment = [];
-  for (let i = 0; i < 5; i++) {
+  let loop;
+  creators.length <= 5 ? loop = creators.length : loop = 5
+  for (let i = 0; i < loop; i++) {
     let channelName = creators[i].creator;
     topCreatorsComment.push(`
     <div class="commentCreator">
@@ -259,7 +266,14 @@ function getCommentsList(comments){
   let commentsList= [];
   for (let i = 0; i < comments.length; i++) {
     let commentText = comments[i].innerText.split(" UTC.")[1]
-    let commentTime = new Date(comments[i].innerText.split(" UTC.")[0].split("video at ")[1])
+    let commentTime = comments[i].innerText.split(" UTC.")[0].split("video at ")[1]
+    if (commentTime === undefined){
+      commentTime = comments[i].innerText.split(" UTC.")[0].split("un vídeo el ")[1]
+    }
+    if (commentTime === undefined){
+      commentTime = comments[i].innerText.split(" UTC.")[0].split("vidéo le")[1]
+    }
+    commentTime = new Date(commentTime)
     let commentURL = comments[i].innerHTML.split('"')[1].replace("&amp;","&")
     let videoURL = commentURL.split("&lc")[0]
     let videoID = videoURL.split("?v=")[1]
@@ -273,10 +287,13 @@ function getCommentsList(comments){
       "videoThumbnail" : videoThumbnail
     }
     if (!comments[i].innerHTML.includes("\">post</a>")){
-      commentsList.push(commentObj)
+      if (!comments[i].innerHTML.includes("\">publicación</a>")){
+        if (!comments[i].innerHTML.includes("\">publication</a>")){
+          commentsList.push(commentObj)
+        }
+      }
     }
   }
-
   commentsList = commentsList.filter(filterCurrentYear)
   return commentsList;
 }
@@ -288,31 +305,30 @@ function getMostLikedChannel(likes, history) {
     urlToCreatorMap.set(video.titleUrl, video.subtitles[0].name);
   }
 
-  // Next, create a map from creators to the number of comments they have
-  const creatorToCommentCountMap = new Map();
+  // Next, create a map from creators to the number of likes they have
+  const creatorToLikesCountMap = new Map();
   for (const like of likes) {
     let likeUrl = like[0]
     const creator = urlToCreatorMap.get(likeUrl);
     if (creator) {
-      if (!creatorToCommentCountMap.has(creator)) {
-        creatorToCommentCountMap.set(creator, 0);
+      if (!creatorToLikesCountMap.has(creator)) {
+        creatorToLikesCountMap.set(creator, 0);
       }
-      creatorToCommentCountMap.set(creator, creatorToCommentCountMap.get(creator) + 1);
+      creatorToLikesCountMap.set(creator, creatorToLikesCountMap.get(creator) + 1);
     }
   }
 
-  // Finally, sort the creators by the number of comments they have and return the list
-  const creators = [...creatorToCommentCountMap.keys()];
-  creators.sort((a, b) => creatorToCommentCountMap.get(b) - creatorToCommentCountMap.get(a));
-  return creators.map(creator => ({ creator, count: creatorToCommentCountMap.get(creator) }));
+  // Finally, sort the creators by the number of likes they have and return the list
+  const creators = [...creatorToLikesCountMap.keys()];
+  creators.sort((a, b) => creatorToLikesCountMap.get(b) - creatorToLikesCountMap.get(a));
+  return creators.map(creator => ({ creator, count: creatorToLikesCountMap.get(creator) }));
 }
 
 
 async function topLikes(likesList, history){
-  console.log(likesList)
   likesList = likesList.filter(filterCurrentYearLikes)
-  console.log(likesList)
   let numberOfLikes = likesList.length
+  console.log(likesList)
   let firstLikeOfYearURL = likesList[numberOfLikes - 1][0]
   let firstLikeOfYearVideo = history.find(video => video.titleUrl === firstLikeOfYearURL);
   let firstLikeOfYearvideoID = firstLikeOfYearURL.split("?v=")[1]
@@ -332,7 +348,9 @@ async function topLikes(likesList, history){
   let creators = getMostLikedChannel(likesList, history)
 
   let topCreatorsLikes = [];
-  for (let i = 0; i < 5; i++) {
+  let loop;
+  creators.length <= 5 ? loop = creators.length : loop = 5
+  for (let i = 0; i < loop; i++) {
     let channelName = creators[i].creator;
     topCreatorsLikes.push(`
     <div class="commentCreator">
@@ -380,7 +398,7 @@ async function getPP(channelName, history) {
   }else{
     return defaultPPURL; 
   }
-  url = "http://api.ytrecap.com/channel-picture?channel_id=" + channelID
+  url = "https://api.ytrecap.com/channel-picture?channel_id=" + channelID
   return fetch(url,
     {
       headers: {
@@ -410,14 +428,14 @@ async function shareDiv(history) {
     topCreatorsDivs.push(`
     <div class="shareCreator">
     <img src="${await getPP(mostViewedChannel.count[i][0], history)}">
-    <a >#${i + 1} ${mostViewedChannel.count[i][0]}</a>
+    <a style="vertical-align: super">#${i + 1} ${mostViewedChannel.count[i][0]}</a>
     </div>
     `)
   }
   
   const topSummaryDiv = `
-    <div class="shareImage" style="width:800px ; height: 700px">
-      <h1 style="margin: 30px"><span style="color: red">YT</span>recap.com</h1>
+    <div class="shareImage" style="width:900px ; ">
+      <h1 style="margin-bottom: 30px; margin-top: 0px"><span style="color: red">YT</span>recap.com</h1>
       <div class="top-summary" style="margin: 10px">
         <div>
           <h3 style="margin: 10px">Videos watched in <span style="color: red">2022</span></h3>

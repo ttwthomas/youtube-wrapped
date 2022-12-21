@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Youtube Wrapped</title>
+    <title>YouTube Recap</title>
     <meta charset="UTF-8" />
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <link href="https://fonts.cdnfonts.com/css/montserrat" rel="stylesheet">
@@ -20,6 +20,9 @@
       a:link, a:visited {
         color: #333333;
         text-decoration: none; 
+      }
+      .note {
+        margin-bottom: 5px;
       }
       .top-creators{
         display: flex;
@@ -145,7 +148,7 @@
         display: none; /* Hidden by default */
         position: fixed; /* Stay in place */
         z-index: 1; /* Sit on top */
-        padding-top: 50px; /* Location of the box */
+        padding-top: 0px; /* Location of the box */
         left: 0;
         top: 0;
         width: 100%; /* Full width */
@@ -160,9 +163,10 @@
         position: relative;
         background-color: #fefefe;
         margin: auto;
-        padding: 0;
+        padding: 0;r
         border: 1px solid #888;
-        width: 800px;
+        width: 900px;
+        height: 850px;
         box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
         -webkit-animation-name: animatetop;
         -webkit-animation-duration: 0.4s;
@@ -253,19 +257,39 @@
 
   <body>
     <div id="zipUpload">
-
-      <h3>Choose the takeout zip file</h3>
+      <h3>Choose the takeout .zip file</h3>
       <p class="note">
-        Generate the zip on takeout.google.com
+        How to export your YouTube data:
         </br>
-        Export only youtube data (watch history, comments and playlist )
+        - Go to <a href="https://takeout.google.com/settings/takeout" target="_blank">takeout.google.com</a>
         </br>
+        - Select only YouTube 
+        </br>
+        - Change format to JSON
+        </br>
+        - Select only :        
+        <ul style="
+        margin: 0px;"><li>watch history</li> <li>comments</li> <li>playlist</li> </ul>
+        </br>
+        - Create export, then check your emails
+        </br>
+        - Select the .zip file in the inpupt bellow
+        </br>
+      </br>
+
         Your data is not sent anywhere. Works even offline.
       </br>
-      </br>
+      <input style="
+      margin-bottom: 20px;" class="file-upload" type="file" id="file" name="file" accept="zip" /><br/>
       <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/B3bb2Difpes" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </br>
+      </br>
+      </br>
+      </br>
+      </br>
+
+      made by <a href="https://twitter.com/cocadmin">@cocadmin</a> and <a href="https://twitter.com/Richard_YTS">@Richard_YTS</a>
       </p>
-      <input class="file-upload" type="file" id="file" name="file" accept="zip" /><br/>
     </div>
 
 
@@ -291,9 +315,11 @@
           if (Object.keys(content.files).includes('Takeout/YouTube and YouTube Music/history/watch-history.json')){
             return content.files[ "Takeout/YouTube and YouTube Music/history/watch-history.json" ].async("text");
           } else if (Object.keys(content.files).includes('Takeout/YouTube y YouTube Music/historial/historial-de-reproducciones.json')){
-            return content.files[ "Takeout/YouTube and YouTube Music/historial/historial-de-reproducciones.json" ].async("text");
+            return content.files[ "Takeout/YouTube y YouTube Music/historial/historial-de-reproducciones.json" ].async("text");
           } else if (Object.keys(content.files).includes('Takeout/YouTube et YouTube Music/historique/watch-history.json')){
             return content.files[ "Takeout/YouTube et YouTube Music/historique/watch-history.json" ].async("text");
+          } else if (Object.keys(content.files).includes('Takeout/YouTube et YouTube Music/historique/historique-vidéos.json')){
+            return content.files[ "Takeout/YouTube et YouTube Music/historique/historique-vidéos.json" ].async("text");
           }else{
             console.log( Object.keys(content.files) )
             alert("can't find watch-history.json")
@@ -316,10 +342,10 @@
           .then(function (content) {
             if (Object.keys(content.files).includes("Takeout/YouTube and YouTube Music/playlists/Liked videos.csv")){
               return content.files[ "Takeout/YouTube and YouTube Music/playlists/Liked videos.csv" ].async("text");
-            } else if (Object.keys(content.files).includes("Takeout/YouTube y YouTube Music/playlists/Liked videos.csv")){
-              return content.files[ "Takeout/YouTube y YouTube Music/playlists/Liked videos.csv" ].async("text");
-            } else if (Object.keys(content.files).includes("Takeout/YouTube et YouTube Music/playlists/Liked videos.csv")){
-              return content.files[ "Takeout/YouTube et YouTube Music/playlists/Liked videos.csv" ].async("text");
+            } else if (Object.keys(content.files).includes("Takeout/YouTube y YouTube Music/listas de reproducción/Liked videos.csv")){
+              return content.files[ "Takeout/YouTube y YouTube Music/listas de reproducción/Liked videos.csv" ].async("text");
+            } else if (Object.keys(content.files).includes("Takeout/YouTube et YouTube Music/listes de lecture/Liked videos.csv")){
+              return content.files[ "Takeout/YouTube et YouTube Music/listes de lecture/Liked videos.csv" ].async("text");
             }else{
               console.log( Object.keys(content.files) )
               alert("can't find Liked videos.csv")
@@ -327,10 +353,12 @@
             }
           })
           .then(function (text) { 
+            console.log(text)
             let parsed = parse(text, {},(value, row, col) => {
-              return col === 1 ? "https://www.youtube.com/watch?v=" + value : Date.parse(value);
+              return col === 1 ? "https://www.youtube.com/watch?v=" + value : Date.parse(value.slice(0,-4));
             }).splice(4)
             parsed.pop() // remove last empty row
+
             topLikes(parsed,history2022)
           });
 
@@ -339,10 +367,10 @@
           .then(function (content) {
             if (Object.keys(content.files).includes("Takeout/YouTube and YouTube Music/my-comments/my-comments.html")){
               return content.files[ "Takeout/YouTube and YouTube Music/my-comments/my-comments.html" ].async("text");
-            } else if (Object.keys(content.files).includes("Takeout/YouTube and YouTube Music/playlists/Liked videos.csv")){
-              return content.files[ "Takeout/YouTube and YouTube Music/playlists/Liked videos.csv" ].async("text");
-            } else if (Object.keys(content.files).includes("Takeout/YouTube and YouTube Music/playlists/Liked videos.csv")){
-              return content.files[ "Takeout/YouTube and YouTube Music/playlists/Liked videos.csv" ].async("text");
+            } else if (Object.keys(content.files).includes("Takeout/YouTube y YouTube Music/mis-comentarios/mis-comentarios.html")){
+              return content.files[ "Takeout/YouTube y YouTube Music/mis-comentarios/mis-comentarios.html" ].async("text");
+            } else if (Object.keys(content.files).includes("Takeout/YouTube et YouTube Music/mes commentaires/mes commentaires.html")){
+              return content.files[ "Takeout/YouTube et YouTube Music/mes commentaires/mes commentaires.html" ].async("text");
             } else{
             console.log( Object.keys(content.files) )
             alert("can't find my-comments.html")
@@ -353,13 +381,12 @@
             let comments = $(text)[2].childNodes;
             let commentsList = getCommentsList(comments)
             topComments(commentsList, history2022);
-
           });
         });
       });
     </script>
 
-    <a href="#" class="float" id="shareButton">
+    <a href="#" class="float" id="shareButton" style="display: none">
       <div style="display: flex;">
         <svg viewBox="0 0 30 24" style="pointer-events: none; display: block; fill: white">
           <g mirror-in-rtl="">
@@ -406,14 +433,14 @@
       </script>
 
       <script>
-      var btn = document.getElementById("clipboard");
+      var clipboardbtn = document.getElementById("clipboard");
       let options= {
         backgroundColor: "#ffffff",
         allowTaint: true,
         useCORS: true,
-        width: 800,
+        width: 850,
       }
-      btn.onclick = function() {
+      clipboardbtn.onclick = function() {
         html2canvas(document.querySelector(".shareImage"),options).then(function(canvas) {
             canvas.toBlob((blob)=>{ // save to clipboard
               try {
@@ -423,8 +450,9 @@
                       value: blob,
                       enumerable: true
                     })
-                  )
-                ]);
+                    )
+                  ]);
+                clipboardbtn.textContent = "Copied to clipboard"
               } catch (error) {
                   console.error(error);
               }
@@ -433,8 +461,8 @@
       }
 
       //twitter
-      var btn = document.getElementById("twitter");
-      btn.onclick = function() {
+      var twitterbtn = document.getElementById("twitter");
+      twitterbtn.onclick = function() {
         // get image url
         //open target _blank  https://twitter.com/share?url=${url}&text=${text}
         html2canvas(document.querySelector(".shareImage"),options).then(function(canvas) {
@@ -465,10 +493,10 @@
       }
 
       //download
-      var btn = document.getElementById("download");
-      btn.onclick = function() {
+      var downloadbtn = document.getElementById("download");
+      downloadbtn.onclick = function() {
         html2canvas(document.querySelector(".shareImage"),options).then(function(canvas) {
-          document.body.appendChild(canvas);
+          // document.body.appendChild(canvas);
           var a = document.createElement('a');
           a.href = canvas.toDataURL("image/png");
           a.download = 'myfile.png';
